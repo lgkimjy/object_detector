@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+import math
 from std_msgs.msg import String
 from std_msgs.msg import Float32
 from sensor_msgs.msg import LaserScan
@@ -11,6 +12,9 @@ obs_max_size = 20     # units : obstacle laser scan points
 pub_obj = rospy.Publisher("/closest_object", LaserScan, queue_size=10)
 pub_theta = rospy.Publisher("/closest_obj_theta", Float32, queue_size=10)
 obs_msg = LaserScan()
+
+def deg2rad(data):
+    return math.radians(data)
 
 def dataCounter(data):
     j=0
@@ -101,8 +105,11 @@ def LaserHandler(data):
     pub_obj.publish(obs_msg)
     
     # obstacle angles, theta
-    # theta = int((idx[0] + idx[-1]) / 2 * 70/270- 35)
-    # print(theta)
+    if(len(idx) == 0):
+        theta = deg2rad(-90)
+    else:
+        theta = int(  ((idx[0] + idx[-1]) / 2) * 70/len(data.ranges)- 125  )
+    print(theta)
 
 
 
