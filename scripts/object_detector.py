@@ -52,41 +52,43 @@ def LaserHandler(data):
     obs_msg.range_max = data.range_max
     obs_msg.ranges[shortest_idx] = data.ranges[shortest_idx]
 
-    # CLUSTERING
-    left_idx = right_idx = shortest_idx
-    left_flag = right_flag = True
-    if(shortest_flag == True):
-        idx = []
-        count = 0
-        for i in range(len(data.ranges)):
+    obs_msg.ranges[shortest_idx] = shortest
 
-            if(left_idx >= len(data.ranges)-5):
-                pass
-            else:
-                if(abs(data.ranges[left_idx] - data.ranges[left_idx + 1]) < thres_obj_gap and left_flag == True):
-                    left_idx += 1
-                    idx.append(left_idx)
-                    count = count + 1
-                    # obs_msg.ranges[left_idx] = data.ranges[left_idx]
-                else:
-                    left_flag = False
+    # # CLUSTERING
+    # left_idx = right_idx = shortest_idx
+    # left_flag = right_flag = True
+    # if(shortest_flag == True):
+    #     idx = []
+    #     count = 0
+    #     for i in range(len(data.ranges)):
 
-            if(right_idx <= 0):
-                pass
-            else:
-                if(abs(data.ranges[right_idx] - data.ranges[right_idx - 1]) < thres_obj_gap and right_flag == True):
-                    right_flag -= 1
-                    idx.append(right_idx)
-                    count = count + 1
-                    # obs_msg.ranges[right_idx] = data.ranges[right_idx]
-                else:
-                    right_flag = False
+    #         if(left_idx >= len(data.ranges)-5):
+    #             pass
+    #         else:
+    #             if(abs(data.ranges[left_idx] - data.ranges[left_idx + 1]) < thres_obj_gap and left_flag == True):
+    #                 left_idx += 1
+    #                 idx.append(left_idx)
+    #                 count = count + 1
+    #                 # obs_msg.ranges[left_idx] = data.ranges[left_idx]
+    #             else:
+    #                 left_flag = False
+
+    #         if(right_idx <= 0):
+    #             pass
+    #         else:
+    #             if(abs(data.ranges[right_idx] - data.ranges[right_idx - 1]) < thres_obj_gap and right_flag == True):
+    #                 right_flag -= 1
+    #                 idx.append(right_idx)
+    #                 count = count + 1
+    #                 # obs_msg.ranges[right_idx] = data.ranges[right_idx]
+    #             else:
+    #                 right_flag = False
             
-            if(left_flag == False and right_flag == False):
-                break
+    #         if(left_flag == False and right_flag == False):
+    #             break
 
-        idx.sort(reverse=True)
-        print(count, " : ", idx)
+    #     idx.sort(reverse=True)
+    #     print(count, " : ", idx)
     
 
 
