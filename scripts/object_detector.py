@@ -7,6 +7,8 @@ from sensor_msgs.msg import LaserScan
 
 thres_shortest = 1.5  # units: m
 thres_obj_gap = 0.15  # units: m
+alpha = 0
+prev_theta = -90
 obs_max_size = 20     # units : obstacle laser scan points
 
 pub_obj = rospy.Publisher("/closest_object", LaserScan, queue_size=10)
@@ -15,6 +17,9 @@ obs_msg = LaserScan()
 
 def deg2rad(data):
     return math.radians(data)
+
+def lpf(data):
+    return alpha * prev_theta + (1-alpha) * data
 
 def dataCounter(data):
     j=0
@@ -108,8 +113,10 @@ def LaserHandler(data):
     if(len(idx) == 0):
         theta = deg2rad(-90)
     else:
-        theta = int(  ((idx[0] + idx[-1]) / 2) * 70/len(data.ranges)- 125  )
-    print(theta)
+        theta = int( ((idx[0] + idx[-1]) / 2) * 70/len(data.ranges)- 125 )
+        theta = deg2rad(theta)
+    print("current theta : ", theta, ", lpf theta : " ,lpf(theta))
+    prev_theta = lpf(theta)
 
 
 
