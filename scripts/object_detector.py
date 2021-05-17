@@ -25,18 +25,21 @@ def LaserHandler(data):
     print("num of non zero laser points : " ,dataCounter(data))   # -55~-125 : num of non zero laser points
 
     # FIND SHORTEST RANGES IDX
+    flag = True
     for i in range(len(data.ranges)):
         if(data.ranges[i] == 0):
             pass
-        elif(data.ranges[i] < thres_shortest):
+        elif(data.ranges[i] < thres_shortest and flag == True):
             shortest = data.ranges[i]
             shortest_idx = i
             shortest_flag = True
+            flag = False
+        elif(data.ranges[i] < shortest and flag == False):
+            shortest = data.ranges[i]
+            shortest_idx = i
     print(shortest_flag, " : ", shortest_idx)
 
     # DATA COPY
-    left_idx = right_idx = shortest_idx
-    left_flag = right_flag = True
     obs_msg.header.frame_id = data.header.frame_id
     obs_msg.header.stamp = data.header.stamp
     obs_msg.angle_min = data.angle_min
@@ -50,11 +53,14 @@ def LaserHandler(data):
     obs_msg.ranges[shortest_idx] = data.ranges[shortest_idx]
 
     # CLUSTERING
+    left_idx = right_idx = shortest_idx
+    left_flag = right_flag = True
     if(shortest_flag == True):
         idx = []
         count = 0
-        for i in range(1, len(data.ranges)/2):
-            if(left_idx >= len(data.ranges)):
+        for i in range(len(data.ranges)):
+
+            if(left_idx >= len(data.ranges)-5):
                 pass
             else:
                 if(abs(data.ranges[left_idx] - data.ranges[left_idx + 1]) < thres_obj_gap and left_flag == True):
@@ -64,6 +70,7 @@ def LaserHandler(data):
                     # obs_msg.ranges[left_idx] = data.ranges[left_idx]
                 else:
                     left_flag = False
+
             if(right_idx <= 0):
                 pass
             else:
@@ -74,7 +81,10 @@ def LaserHandler(data):
                     # obs_msg.ranges[right_idx] = data.ranges[right_idx]
                 else:
                     right_flag = False
-                    
+            
+            if(left_flag == False and right_flag == False):
+                break
+
         idx.sort(reverse=True)
         print(count, " : ", idx)
     
