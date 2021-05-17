@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import String
+from std_msgs.msg import Float32
 from sensor_msgs.msg import LaserScan
 
-thres_shortest = 1.5 # units: m
-thres_obj_gap = 0.1  # units: m
-obs_max_size = 20    # units : obstacle laser scan points
+thres_shortest = 1.5  # units: m
+thres_obj_gap = 0.15  # units: m
+obs_max_size = 20     # units : obstacle laser scan points
 
+pub_obj = rospy.Publisher("/closest_object", LaserScan, queue_size=10)
+pub_theta = rospy.Publisher("/closest_obj_theta", Float32, queue_size=10)
 obs_msg = LaserScan()
 
 def dataCounter(data):
@@ -21,8 +24,8 @@ def LaserHandler(data):
     shortest = 0
     shortest_idx = 0
     shortest_flag = False
-
-    print("num of non zero laser points : " ,dataCounter(data))   # -55~-125 : num of non zero laser points
+    idx = []
+    print("# of Non Zero Laser Points : " ,dataCounter(data))   # -55~-125 : num of non zero laser points
 
     # FIND SHORTEST RANGES IDX
     flag = True
@@ -47,59 +50,66 @@ def LaserHandler(data):
     obs_msg.angle_increment = data.angle_increment
     obs_msg.time_increment = data.time_increment
     obs_msg.scan_time = data.scan_time
-    obs_msg.ranges = [0.0] * 270
+    obs_msg.ranges = [0.0] * len(data.ranges)
     obs_msg.range_min = data.range_min
     obs_msg.range_max = data.range_max
     obs_msg.ranges[shortest_idx] = data.ranges[shortest_idx]
 
     obs_msg.ranges[shortest_idx] = shortest
 
-    # # CLUSTERING
-    # left_idx = right_idx = shortest_idx
-    # left_flag = right_flag = True
-    # if(shortest_flag == True):
-    #     idx = []
-    #     count = 0
-    #     for i in range(len(data.ranges)):
+    # CLUSTERING
+    left_idx = right_idx = shortest_idx
+    left_flag = right_flag = True
+    l_tmp = r_tmp = shortest
+    if(shortest_flag == True):
+        count = 0
+        for i in range(len(data.ranges)):
 
-    #         if(left_idx >= len(data.ranges)-5):
-    #             pass
-    #         else:
-    #             if(abs(data.ranges[left_idx] - data.ranges[left_idx + 1]) < thres_obj_gap and left_flag == True):
-    #                 left_idx += 1
-    #                 idx.append(left_idx)
-    #                 count = count + 1
-    #                 # obs_msg.ranges[left_idx] = data.ranges[left_idx]
-    #             else:
-    #                 left_flag = False
+            if(left_idx >= len(data.ranges)-1):
+                pass
+            else:
+                if(data.ranges[left_idx+1] == 0.0 and left_flag == True):
+                    left_idx += 1
+                elif(abs(l_tmp - data.ranges[left_idx + 1]) < thres_obj_gap and left_flag == True):
+                    left_idx += 1
+                    l_tmp = data.ranges[left_idx]
+                    idx.append(left_idx)
+                    count = count + 1
+                    obs_msg.ranges[left_idx] = data.ranges[left_idx]
+                else:
+                    left_flag = False
 
-    #         if(right_idx <= 0):
-    #             pass
-    #         else:
-    #             if(abs(data.ranges[right_idx] - data.ranges[right_idx - 1]) < thres_obj_gap and right_flag == True):
-    #                 right_flag -= 1
-    #                 idx.append(right_idx)
-    #                 count = count + 1
-    #                 # obs_msg.ranges[right_idx] = data.ranges[right_idx]
-    #             else:
-    #                 right_flag = False
+            if(right_idx <= 0):
+                pass
+            else:
+                if(data.ranges[right_idx - 1] == 0.0 and right_flag == True):
+                    right_idx -= 1
+                elif(abs(r_tmp - data.ranges[right_idx - 1]) < thres_obj_gap and right_flag == True):
+                    right_idx -= 1
+                    r_tmp = data.ranges[right_idx]
+                    idx.append(right_idx)
+                    count = count + 1
+                    obs_msg.ranges[right_idx] = data.ranges[right_idx]
+                else:
+                    right_flag = False
             
-    #         if(left_flag == False and right_flag == False):
-    #             break
+            if(left_flag == False and right_flag == False):
+                break
 
-    #     idx.sort(reverse=True)
-    #     print(count, " : ", idx)
+        idx.sort(reverse=True)
+        print("# of Laser Points : ", count, " : ", idx)
+    pub_obj.publish(obs_msg)
     
+    # obstacle angles, theta
+    # theta = int((idx[0] + idx[-1]) / 2 * 70/270- 35)
+    # print(theta)
+
 
 
 if __name__ == '__main__':
     
     rospy.init_node('object_detector', anonymous=True)
 
-    pub = rospy.Publisher("/closest_obstacle", LaserScan, queue_size=10)
-
     rospy.Subscriber("/scan", LaserScan, LaserHandler)
 
-    while not rospy.is_shutdown():
-        pub.publish(obs_msg)
     rospy.spin()
