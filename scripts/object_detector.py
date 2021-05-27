@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import math
-from std_msgs.msg import String
-from std_msgs.msg import Float32
+from std_msgs.msg import String, Float32
 from sensor_msgs.msg import LaserScan
+from geometry_msgs.msg import PointStamped
+from obstacle_detector.msg import Obstacles, CircleObstacle
 
 thres_shortest = 2.0  # units: m
 thres_obj_gap = 0.15  # units: m
@@ -11,9 +12,18 @@ alpha = 0.1
 prev_theta = 0
 obs_max_size = 20     # units : obstacle laser scan points
 
-pub_obj = rospy.Publisher("/closest_object", LaserScan, queue_size=10)
-pub_theta = rospy.Publisher("/closest_obj_theta", Float32, queue_size=10)
+pub_obj = rospy.Publisher("/object_detector/clustered_closest_obj", LaserScan, queue_size=10)
+pub_theta = rospy.Publisher("/object_detector/clustered_closest_obj_theta", Float32, queue_size=10)
+pub_point_debug = rospy.Publisher("/object_detector/closest_point_debug", PointStamped, queue_size=10)
+pub_point = rospy.Publisher("/object_detector/obstacles", Obstacles, queue_size=10)
+
 obs_msg = LaserScan()
+obs_point_debug_msg = PointStamped()
+obs_point_msg = Obstacles()
+
+tmp = CircleObstacle()
+obs_point_msg.circles.append(tmp)
+
 
 def deg2rad(data):
     return math.radians(data)
@@ -30,6 +40,8 @@ def dataCounter(data):
 
 def LaserHandler(data):
     
+    x = y = 0
+
     shortest = 0
     shortest_idx = 0
     shortest_flag = False
@@ -106,23 +118,39 @@ def LaserHandler(data):
                 break
 
         idx.sort(reverse=True)
-        print("# of Laser Points : ", count, " : ", idx)
+        # print("# of Laser Points : ", count, " : ", idx)
     pub_obj.publish(obs_msg)
     
     # obstacle angles, theta
     if(len(idx) == 0):
-        theta = deg2rad(-90)
+        theta = deg2rad(0)
+        distance = 0
     else:
-        theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149 + 90 + 16) # +90 = make forward theata to zero, +16=tilted degree of lidar
-        #theta = deg2rad(theta)
-    print("current theta : ", theta, ", lpf theta : " ,lpf(theta))
+        # +90 = make forward degree default to zero, +16 = tilted degree of lidar
+        theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149 + 90 + 16)
+        distance = data.ranges[idx[int(count/2)]]
+        x = distance * math.cos(deg2rad(theta))
+        y = distance * math.sin(deg2rad(theta))
+        theta = deg2rad(theta)
+    print("curr theta : ", theta, ", lpf theta : " ,lpf(theta), ", dist : ", distance)
+    print("(x,y) = (", x, ",", y, ")")
     prev_theta = lpf(theta)
 
+    # DEBUG POINTS
+    # obs_point_debug_msg.header.frame_id = data.header.frame_id
+    # obs_point_debug_msg.point.x = x
+    # obs_point_debug_msg.point.y = y
+    # obs_point_debug_msg.point.z = 0
+
+    obs_point_msg.circles[0].center.x = x
+    obs_point_msg.circles[0].center.y = y
+    obs_point_msg.circles[0].center.z = 0
+    pub_point.publish(obs_point_msg)
 
 
 if __name__ == '__main__':
     
-    rospy.init_node('object_detector', anonymous=True)
+    rospy.init_node('object_detector_node', anonymous=True)
 
     rospy.Subscriber("/scan", LaserScan, LaserHandler)
 
