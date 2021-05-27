@@ -131,17 +131,18 @@ def LaserHandler(data):
         distance = data.ranges[idx[int(count/2)]]
         x = distance * math.cos(deg2rad(theta))
         y = distance * math.sin(deg2rad(theta))
-        theta = deg2rad(theta)
-    print("curr theta : ", theta, ", lpf theta : " ,lpf(theta), ", dist : ", distance)
+        #theta = deg2rad(theta)
+    print("curr theta : ", theta, ", dist : ", distance)
     print("(x,y) = (", x, ",", y, ")")
-    prev_theta = lpf(theta)
 
     # DEBUG POINTS
-    # obs_point_debug_msg.header.frame_id = data.header.frame_id
-    # obs_point_debug_msg.point.x = x
-    # obs_point_debug_msg.point.y = y
-    # obs_point_debug_msg.point.z = 0
-
+    obs_point_debug_msg.header.frame_id = data.header.frame_id
+    obs_point_debug_msg.point.x = distance * math.cos(deg2rad(theta-106))
+    obs_point_debug_msg.point.y = distance * math.sin(deg2rad(theta-106))
+    obs_point_debug_msg.point.z = 0
+    pub_point_debug.publish(obs_point_debug_msg)
+    
+    obs_point_msg.header.frame_id = data.header.frame_id
     obs_point_msg.circles[0].center.x = x
     obs_point_msg.circles[0].center.y = y
     obs_point_msg.circles[0].center.z = 0
