@@ -5,10 +5,10 @@ from std_msgs.msg import String
 from std_msgs.msg import Float32
 from sensor_msgs.msg import LaserScan
 
-thres_shortest = 1.5  # units: m
+thres_shortest = 2.0  # units: m
 thres_obj_gap = 0.15  # units: m
-alpha = 0
-prev_theta = -90
+alpha = 0.1
+prev_theta = 0
 obs_max_size = 20     # units : obstacle laser scan points
 
 pub_obj = rospy.Publisher("/closest_object", LaserScan, queue_size=10)
@@ -113,8 +113,8 @@ def LaserHandler(data):
     if(len(idx) == 0):
         theta = deg2rad(-90)
     else:
-        theta = int( ((idx[0] + idx[-1]) / 2) * 70/len(data.ranges)- 125 )
-        theta = deg2rad(theta)
+        theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149 + 90 + 16) # +90 = make forward theata to zero, +16=tilted degree of lidar
+        #theta = deg2rad(theta)
     print("current theta : ", theta, ", lpf theta : " ,lpf(theta))
     prev_theta = lpf(theta)
 
