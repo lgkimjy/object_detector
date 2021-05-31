@@ -61,6 +61,7 @@ def findShortest(data):
 def LaserHandler(data):
     x = y = 0
     idx = []
+    coords = []
     # print("# of Non Zero Laser Points : " ,dataCounter(data))   # -63~-149 : num of non zero laser points
 
     ### DATA COPY
@@ -120,7 +121,16 @@ def LaserHandler(data):
             if(len(idx) < obs_min_size):
                 for i in range(len(idx)):
                     obs_msg.ranges[idx[i]] = 0.0
+            else : 
+                # +90 = make forward degree default to zero, +16 = tilted degree of lidar
+                theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149 + 90 + 16)
+                distance = data.ranges[idx[int(count/2)]]
+                x = distance * math.cos(deg2rad(theta))
+                y = distance * math.sin(deg2rad(theta))
+                print("(x, y) = (", x, ",", y, ")")
+            
             idx = []
+            x = y = 0
             left_flag = right_flag = True
 
         else:
