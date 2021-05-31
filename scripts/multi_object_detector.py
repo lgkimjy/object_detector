@@ -115,7 +115,7 @@ def LaserHandler(data):
                 if(left_flag == False and right_flag == False):
                     filtered_msg.ranges[shortest_idx] = 0.0
                     idx.sort(reverse=True)
-                    print("# of Laser Points : ", len(idx), " : ", idx)
+                    # print("# of Laser Points : ", len(idx), " : ", idx)
                     break
                 
             if(len(idx) < obs_min_size):
@@ -124,9 +124,10 @@ def LaserHandler(data):
             else : 
                 # +90 = make forward degree default to zero, +16 = tilted degree of lidar
                 theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149 + 90 + 16)
-                distance = data.ranges[idx[int(count/2)]]
+                distance = data.ranges[idx[int(len(idx)/2)]]
                 x = distance * math.cos(deg2rad(theta))
                 y = distance * math.sin(deg2rad(theta))
+                print("# of Laser Points : ", len(idx), " : ", idx)
                 print("(x, y) = (", x, ",", y, ")")
             
             idx = []
@@ -138,20 +139,6 @@ def LaserHandler(data):
             break
 
     pub_obj.publish(obs_msg)
-    
-    # # obstacle angles, theta
-    # if(len(idx) == 0):
-    #     theta = deg2rad(0)
-    #     distance = 0
-    # else:
-    #     # +90 = make forward degree default to zero, +16 = tilted degree of lidar
-    #     theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149 + 90 + 16)
-    #     distance = data.ranges[idx[int(count/2)]]
-    #     x = distance * math.cos(deg2rad(theta))
-    #     y = distance * math.sin(deg2rad(theta))
-    #     #theta = deg2rad(theta)
-    # print("curr theta : ", theta, ", dist : ", distance)
-    # print("(x,y) = (", x, ",", y, ")")
 
     # ### DEBUG POINTS
     # obs_point_debug_msg.header.frame_id = data.header.frame_id
