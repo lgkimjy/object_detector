@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 import math
+from copy import deepcopy
 from std_msgs.msg import String, Float32
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import PointStamped
@@ -39,11 +40,8 @@ def dataCounter(data):
     return j
 
 def LaserHandler(data):
-    
     x = y = 0
-
-    shortest = 0
-    shortest_idx = 0
+    shortest = shortest_idx = 0
     shortest_flag = False
     idx = []
     print("# of Non Zero Laser Points : " ,dataCounter(data))   # -55~-125 : num of non zero laser points
@@ -64,18 +62,9 @@ def LaserHandler(data):
     print(shortest_flag, " : ", shortest_idx)
 
     # DATA COPY
-    obs_msg.header.frame_id = data.header.frame_id
-    obs_msg.header.stamp = data.header.stamp
-    obs_msg.angle_min = data.angle_min
-    obs_msg.angle_max = data.angle_max
-    obs_msg.angle_increment = data.angle_increment
-    obs_msg.time_increment = data.time_increment
-    obs_msg.scan_time = data.scan_time
+    obs_msg = deepcopy(data)
     obs_msg.ranges = [0.0] * len(data.ranges)
-    obs_msg.range_min = data.range_min
-    obs_msg.range_max = data.range_max
     obs_msg.ranges[shortest_idx] = data.ranges[shortest_idx]
-
     obs_msg.ranges[shortest_idx] = shortest
 
     # CLUSTERING
