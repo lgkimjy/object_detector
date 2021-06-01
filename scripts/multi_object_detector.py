@@ -14,10 +14,12 @@ obs_min_size = 15
 alpha = 0.1
 prev_theta = 0
 
-pub_obj = rospy.Publisher("/object_detector/clustered_closest_obj", LaserScan, queue_size=10)
-pub_theta = rospy.Publisher("/object_detector/clustered_closest_obj_theta", Float32, queue_size=10)
-pub_point_debug = rospy.Publisher("/object_detector/closest_point_debug", PointStamped, queue_size=10)
-pub_point = rospy.Publisher("/object_detector/obstacles", Obstacles, queue_size=10)
+robot_id = rospy.get_param('robot_id', '')
+
+pub_obj = rospy.Publisher("/"+ robot_id +"/object_detector/clustered_closest_obj", LaserScan, queue_size=10)
+pub_theta = rospy.Publisher("/"+ robot_id +"/object_detector/clustered_closest_obj_theta", Float32, queue_size=10)
+pub_point_debug = rospy.Publisher("/"+ robot_id +"/object_detector/closest_point_debug", PointStamped, queue_size=10)
+pub_point = rospy.Publisher("/"+ robot_id +"/object_detector/obstacles", Obstacles, queue_size=10)
 
 filtered_msg = LaserScan()
 obs_msg = LaserScan()
