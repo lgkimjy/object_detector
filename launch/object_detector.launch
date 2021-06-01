@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+	<param name="robot_id" value="robot_1" />
+    <node pkg="object_detector" name="object_detector" type="object_detector.py" output="screen" /> 
+
+</launch>
