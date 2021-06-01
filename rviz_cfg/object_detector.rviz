@@ -76,7 +76,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.009999999776482582
+      Size (m): 0.05000000074505806
       Style: Flat Squares
       Topic: ""
       Unreliable: false
@@ -101,7 +101,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base_foorprint
+    Fixed Frame: base_footprint
     Frame Rate: 30
   Name: root
   Tools:

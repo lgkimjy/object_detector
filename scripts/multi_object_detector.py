@@ -4,7 +4,7 @@ import math
 from copy import deepcopy
 from std_msgs.msg import String, Float32
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import PointStamped, Point
 from obstacle_detector.msg import Obstacles, CircleObstacle
 
 thres_shortest = 2.0  # units: m
@@ -26,8 +26,8 @@ obs_msg = LaserScan()
 obs_point_debug_msg = PointStamped()
 obs_point_msg = Obstacles()
 
-tmp = CircleObstacle()
-obs_point_msg.circles.append(tmp)
+# tmp = CircleObstacle()
+# obs_point_msg.circles.append(tmp)
 
 def deg2rad(data):
     return math.radians(data)
@@ -71,7 +71,9 @@ def LaserHandler(data):
     filtered_msg.ranges = list(filtered_msg.ranges) 
     obs_msg = deepcopy(data)
     obs_msg.ranges = [0.0] * len(data.ranges)
-    
+
+    obs_point_msg = Obstacles()
+    print("------------------------------------------")
     while(1):
         ### FIND SHORTEST RANGES IDX
         shortest_flag, shortest, shortest_idx = findShortest(filtered_msg)
@@ -131,7 +133,13 @@ def LaserHandler(data):
                 y = distance * math.sin(deg2rad(theta))
                 print("# of Laser Points : ", len(idx), " : ", idx)
                 print("(x, y) = (", x, ",", y, ")")
-            
+
+                tmps = Point()
+                tmps.x = x
+                tmps.y = y
+                tmps.z = 0
+                obs_point_msg.circles.append(tmps)
+
             idx = []
             x = y = 0
             left_flag = right_flag = True
@@ -141,25 +149,15 @@ def LaserHandler(data):
             break
 
     pub_obj.publish(obs_msg)
-
-    # ### DEBUG POINTS
-    # obs_point_debug_msg.header.frame_id = data.header.frame_id
-    # obs_point_debug_msg.point.x = distance * math.cos(deg2rad(theta-106))
-    # obs_point_debug_msg.point.y = distance * math.sin(deg2rad(theta-106))
-    # obs_point_debug_msg.point.z = 0
-    # pub_point_debug.publish(obs_point_debug_msg)
     
-    # obs_point_msg.header.frame_id = data.header.frame_id
-    # obs_point_msg.circles[0].center.x = x
-    # obs_point_msg.circles[0].center.y = y
-    # obs_point_msg.circles[0].center.z = 0
-    # pub_point.publish(obs_point_msg)
+    obs_point_msg.header.frame_id = data.header.frame_id
+    pub_point.publish(obs_point_msg)
 
 
 if __name__ == '__main__':
     
-    rospy.init_node('object_detector_node', anonymous=True)
+    rospy.init_node('multi_object_detector_node', anonymous=True)
 
-    rospy.Subscriber("/scan", LaserScan, LaserHandler)
+    rospy.Subscriber("/"+ robot_id +"/scan", LaserScan, LaserHandler)
 
     rospy.spin()

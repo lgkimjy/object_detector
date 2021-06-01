@@ -27,7 +27,6 @@ obs_point_msg = Obstacles()
 tmp = CircleObstacle()
 obs_point_msg.circles.append(tmp)
 
-
 def deg2rad(data):
     return math.radians(data)
 
@@ -144,6 +143,6 @@ if __name__ == '__main__':
     
     rospy.init_node('object_detector_node', anonymous=True)
 
-    rospy.Subscriber("/scan", LaserScan, LaserHandler)
+    rospy.Subscriber("/"+ robot_id +"/scan", LaserScan, LaserHandler)
 
     rospy.spin()
