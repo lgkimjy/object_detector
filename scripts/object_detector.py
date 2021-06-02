@@ -136,6 +136,7 @@ def LaserHandler(data):
     obs_point_msg.circles[0].center.x = x
     obs_point_msg.circles[0].center.y = y
     obs_point_msg.circles[0].center.z = 0
+    obs_point_msg.circles[0].true_radius = 0.2
     pub_point.publish(obs_point_msg)
 
 
