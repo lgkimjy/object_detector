@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <launch>
 
-    <param name="robot_id" value="robot_1" />
+    <arg name="robot_id" default=""/>
+    <param name="robot_id" value="$(arg robot_id)" />
     <node pkg="object_detector" name="object_detector" type="object_detector.py" output="screen" /> 
 
-    <arg name="rviz" default="true" />
+    <arg name="rviz" default="false" />
     <group if="$(arg rviz)">
         <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find object_detector)/rviz_cfg/object_detector.rviz" />
     </group>

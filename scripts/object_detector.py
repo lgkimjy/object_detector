@@ -15,10 +15,10 @@ obs_max_size = 20     # units : obstacle laser scan points
 
 robot_id = rospy.get_param('robot_id', '')
 
-pub_obj = rospy.Publisher("/"+ robot_id +"/object_detector/clustered_closest_obj", LaserScan, queue_size=10)
-pub_theta = rospy.Publisher("/"+ robot_id +"/object_detector/clustered_closest_obj_theta", Float32, queue_size=10)
-pub_point_debug = rospy.Publisher("/"+ robot_id +"/object_detector/closest_point_debug", PointStamped, queue_size=10)
-pub_point = rospy.Publisher("/"+ robot_id +"/object_detector/obstacles", Obstacles, queue_size=10)
+pub_obj = rospy.Publisher(robot_id +"/object_detector/clustered_closest_obj", LaserScan, queue_size=10)
+pub_theta = rospy.Publisher(robot_id +"/object_detector/clustered_closest_obj_theta", Float32, queue_size=10)
+pub_point_debug = rospy.Publisher(robot_id +"/object_detector/closest_point_debug", PointStamped, queue_size=10)
+pub_point = rospy.Publisher(robot_id +"/object_detector/obstacles", Obstacles, queue_size=10)
 
 obs_msg = LaserScan()
 obs_point_debug_msg = PointStamped()
@@ -116,7 +116,6 @@ def LaserHandler(data):
         theta = deg2rad(0)
         distance = 0
     else:
-        # +90 = make forward degree default to zero, +16 = tilted degree of lidar
         theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149)
         distance = data.ranges[idx[int(count/2)]]
         x = distance * math.cos(deg2rad(theta))
@@ -136,6 +135,7 @@ def LaserHandler(data):
     obs_point_msg.circles[0].center.x = x
     obs_point_msg.circles[0].center.y = y
     obs_point_msg.circles[0].center.z = 0
+    obs_point_msg.circles[0].true_radius = 0.01 * len(idx)
     pub_point.publish(obs_point_msg)
 
 
@@ -143,6 +143,6 @@ if __name__ == '__main__':
     
     rospy.init_node('object_detector_node', anonymous=True)
 
-    rospy.Subscriber("/"+ robot_id +"/scan", LaserScan, LaserHandler)
+    rospy.Subscriber(robot_id +"/scan", LaserScan, LaserHandler)
 
     rospy.spin()

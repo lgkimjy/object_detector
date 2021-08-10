@@ -16,18 +16,15 @@ prev_theta = 0
 
 robot_id = rospy.get_param('robot_id', '')
 
-pub_obj = rospy.Publisher("/"+ robot_id +"/object_detector/clustered_closest_obj", LaserScan, queue_size=10)
-pub_theta = rospy.Publisher("/"+ robot_id +"/object_detector/clustered_closest_obj_theta", Float32, queue_size=10)
-pub_point_debug = rospy.Publisher("/"+ robot_id +"/object_detector/closest_point_debug", PointStamped, queue_size=10)
-pub_point = rospy.Publisher("/"+ robot_id +"/object_detector/obstacles", Obstacles, queue_size=10)
+pub_obj = rospy.Publisher(robot_id +"/object_detector/clustered_closest_obj", LaserScan, queue_size=10)
+pub_theta = rospy.Publisher(robot_id +"/object_detector/clustered_closest_obj_theta", Float32, queue_size=10)
+pub_point_debug = rospy.Publisher(robot_id +"/object_detector/closest_point_debug", PointStamped, queue_size=10)
+pub_point = rospy.Publisher(robot_id +"/object_detector/obstacles", Obstacles, queue_size=10)
 
 filtered_msg = LaserScan()
 obs_msg = LaserScan()
 obs_point_debug_msg = PointStamped()
 obs_point_msg = Obstacles()
-
-# tmp = CircleObstacle()
-# obs_point_msg.circles.append(tmp)
 
 def deg2rad(data):
     return math.radians(data)
@@ -119,25 +116,24 @@ def LaserHandler(data):
                 if(left_flag == False and right_flag == False):
                     filtered_msg.ranges[shortest_idx] = 0.0
                     idx.sort(reverse=True)
-                    # print("# of Laser Points : ", len(idx), " : ", idx)
                     break
                 
             if(len(idx) < obs_min_size):
                 for i in range(len(idx)):
                     obs_msg.ranges[idx[i]] = 0.0
-            else : 
-                # +90 = make forward degree default to zero, +16 = tilted degree of lidar
-                theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149 + 90 + 16)
+            else :
+                theta = int( ((idx[0] + idx[-1]) / 2) * 86/len(data.ranges)- 149)
                 distance = data.ranges[idx[int(len(idx)/2)]]
                 x = distance * math.cos(deg2rad(theta))
                 y = distance * math.sin(deg2rad(theta))
                 print("# of Laser Points : ", len(idx), " : ", idx)
                 print("(x, y) = (", x, ",", y, ")")
 
-                tmps = Point()
-                tmps.x = x
-                tmps.y = y
-                tmps.z = 0
+                tmps = CircleObstacle()
+                tmps.center.x = x
+                tmps.center.y = y
+                tmps.center.z = 0
+                tmps.true_radius = 0.01 * len(idx)  ## 0.01 is heuristic num
                 obs_point_msg.circles.append(tmps)
 
             idx = []
@@ -158,6 +154,6 @@ if __name__ == '__main__':
     
     rospy.init_node('multi_object_detector_node', anonymous=True)
 
-    rospy.Subscriber("/"+ robot_id +"/scan", LaserScan, LaserHandler)
+    rospy.Subscriber(robot_id +"/scan", LaserScan, LaserHandler)
 
     rospy.spin()
